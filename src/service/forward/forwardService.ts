@@ -38,6 +38,7 @@ export class ForwardService {
                         await this.forward(sshConfig, content)
                         handler.emit("success")
                     } catch (err) {
+                        console.log("error006", err);
                         handler.emit("error", err.message)
                     }
                 }).on("start", async content => {

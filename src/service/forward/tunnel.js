@@ -3,8 +3,7 @@ var debug = require('debug')('tunnel-ssh');
 var Connection = require('ssh2');
 var createConfig = require('./lib/config');
 var events = require('events');
-var noop = function () {
-};
+var noop = function () {};
 
 var tunelMark = {};
 
@@ -113,6 +112,7 @@ function tunnel(configArgs, callback) {
             callback(error, server);
         });
     } catch (e) {
+        console.log("error007", e);
         server = new events.EventEmitter();
         setImmediate(function () {
             callback(e);

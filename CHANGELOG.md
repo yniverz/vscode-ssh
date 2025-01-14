@@ -1,5 +1,13 @@
 # Change Log
 
+# 1.9.0 - 2025/1/14
+
+- Fix Connection Reset error after long time connection.
+- Move Delete connection to right click menu.
+- User can View/Hide password in connection setting.
+- Add Open in FileZilla button for MacOS.
+- add postpack script to package vsix file.
+
 # 1.8.1 - 2021/2/24
 
 - Fix treedata load fail when connection dead.

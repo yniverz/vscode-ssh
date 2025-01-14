@@ -2,8 +2,8 @@
   "name": "vscode-ssh",
   "displayName": "SSH Client",
   "description": "SSH Client for vscode",
-  "version": "1.8.1",
-  "publisher": "cweijan",
+  "version": "1.9.0",
+  "publisher": "yniverz",
   "engines": {
     "vscode": "^1.38.0"
   },
@@ -21,18 +21,22 @@
     {
       "name": "cweijan",
       "email": "cweijan@163.com"
+    },
+    {
+      "name": "yniverz",
+      "email": "yniverz01@gmail.com"
     }
   ],
   "badges": [],
   "icon": "resources/image/logo.png",
-  "homepage": "https://github.com/cweijan/vscode-ssh/blob/master/README.md",
+  "homepage": "https://github.com/yniverz/vscode-ssh/blob/master/README.md",
   "bugs": {
-    "url": "https://github.com/cweijan/vscode-ssh/issues",
-    "email": "cweijan@163.com"
+    "url": "https://github.com/yniverz/vscode-ssh/issues",
+    "email": "yniverz01@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cweijan/vscode-ssh"
+    "url": "https://github.com/yniverz/vscode-ssh"
   },
   "activationEvents": [
     "*"
@@ -139,6 +143,14 @@
       {
         "command": "ssh.file.upload",
         "title": "Upload File"
+      },
+      {
+        "command": "ssh.filezilla",
+        "title": "Open in FileZilla",
+        "icon": {
+          "light": "resources/image/light/link.svg",
+          "dark": "resources/image/dark/link.svg"
+        }
       }
     ],
     "menus": {
@@ -156,14 +168,19 @@
       ],
       "view/item/context": [
         {
-          "command": "ssh.connection.delete",
+          "command": "ssh.connection.terminal",
           "when": "view == github.cweijan.ssh && viewItem == connection",
           "group": "inline@0"
         },
         {
-          "command": "ssh.connection.terminal",
+          "command": "ssh.filezilla",
           "when": "view == github.cweijan.ssh && viewItem == connection",
-          "group": "inline@1"
+          "group": "inline@1" 
+        },
+        {
+          "command": "ssh.connection.delete",
+          "when": "view == github.cweijan.ssh && viewItem == connection",
+          "group": "0_connection@-3"
         },
         {
           "command": "ssh.host.copy",
@@ -256,7 +273,8 @@
   "scripts": {
     "vscode:prepublish": "npm run build",
     "dev": "webpack --progress",
-    "build": "webpack -p --progress"
+    "build": "webpack -p --progress",
+    "postpack": "cp -r '../vscode-ssh/' '../extension' && zip -r '../vscode-ssh.vsix' '../extension' && rm -rf '../extension'"
   },
   "devDependencies": {
     "@types/node": "^13.11.0",
@@ -282,6 +300,7 @@
     "xterm-addon-search-bar": "^0.2.0"
   },
   "dependencies": {
+    "@vscode/vsce": "^3.2.1",
     "debug": "2.6.9",
     "element-ui": "^2.13.2",
     "lodash.defaults": "^4.1.0",
@@ -289,6 +308,7 @@
     "progress-stream": "^2.0.0",
     "ssh2": "^0.7.0",
     "tunnel-ssh": "^4.1.4",
+    "vsce": "^2.15.0",
     "vue": "^2.6.11"
   }
 }

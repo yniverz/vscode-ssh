@@ -43,11 +43,13 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
                     key=`${sshConfig.name ? sshConfig.name + "_" : ""}${key}`
                     return new ParentNode(sshConfig, key);
                 });
+                nodes.sort((a, b) => a.label.localeCompare(b.label));
                 return nodes
             } else {
                 return element.getChildren()
             }
         } catch (error) {
+            console.log("error002", error);
             return [new InfoNode(error)]
         }
     }
@@ -109,6 +111,7 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
                         handler.panel.dispose()
                         this.refresh();
                     }).catch(err => {
+                        console.log("error003", err);
                         handler.emit('CONNECTION_ERROR', err.message)
                     })
 

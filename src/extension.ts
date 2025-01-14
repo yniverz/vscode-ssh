@@ -19,6 +19,7 @@ export function activate(context: ExtensionContext) {
             'ssh.edit': (parentNode: ParentNode) => serviceManager.provider.save(parentNode),
             'ssh.connection.terminal': (parentNode: ParentNode) => parentNode.openTerminal(),
             'ssh.connection.delete': (parentNode: ParentNode) => serviceManager.provider.delete(parentNode),
+            'ssh.filezilla': (parentNode: ParentNode) => parentNode.openFileZilla(),
             'ssh.folder.new': (parentNode: ParentNode) => parentNode.newFolder(),
             'ssh.file.new': (parentNode: ParentNode) => parentNode.newFile(),
             'ssh.host.copy': (parentNode: ParentNode) => parentNode.copyIP(),
@@ -42,6 +43,7 @@ function commandWrapper(commandDefinition: any, command: string): (...args: any[
             commandDefinition[command](...args);
         }
         catch (err) {
+            console.log("error001", err);
             Console.log(err);
         }
     };

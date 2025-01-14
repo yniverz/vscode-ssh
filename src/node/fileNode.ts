@@ -34,8 +34,26 @@ export class FileNode extends AbstractNode {
         return [];
     }
     delete(): any {
-        vscode.window.showQuickPick(["YES", "NO"], { canPickMany: false }).then(async str => {
-            if (str == "YES") {
+        // vscode.window.showQuickPick(["YES", "NO"], { canPickMany: false }).then(async str => {
+        //     if (str == "YES") {
+        //         const { sftp } = await ClientManager.getSSH(this.sshConfig)
+        //         sftp.unlink(this.fullPath, (err) => {
+        //             if (err) {
+        //                 vscode.window.showErrorMessage(err.message)
+        //             } else {
+        //                 vscode.commands.executeCommand(Command.REFRESH)
+        //             }
+        //         })
+        //     }
+        // })
+
+
+        vscode.window.showInformationMessage(
+            `Are you sure you want to delete '${this.fullPath}'? This action cannot be undone.`,
+            { modal: true },
+            "Yes",
+            "No").then(async str => {
+            if (str == "Yes") {
                 const { sftp } = await ClientManager.getSSH(this.sshConfig)
                 sftp.unlink(this.fullPath, (err) => {
                     if (err) {
@@ -97,7 +115,7 @@ export class FileNode extends AbstractNode {
                                 progress.report({ increment: progressData.percentage-before,message:`remaining : ${prettyBytes(progressData.remaining)}` });
                                 before=progressData.percentage
                             })
-                            str.on("error",err=>{
+                            str.on("error", err=>{
                                 vscode.window.showErrorMessage(err.message)
                             })
                             const outStream = createWriteStream(uri.fsPath);

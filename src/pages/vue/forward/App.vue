@@ -168,6 +168,7 @@ export default {
           this.remove(id);
         })
         .catch(() => {
+          console.log("error005", error);
           this.$message({ type: "info", message: "Delete canceled" });
         });
     },

@@ -31,7 +31,8 @@
       </div>
     </div>
     <div>
-      <div class="field field__input">
+      <!-- hide the cipher element -->
+      <div class="field field__input" style="display:none">
         <b>cipher:</b>
         <select v-model="connectionOption.algorithms.cipher[0]">
           <option value="aes128-cbc">aes128-cbc</option>
@@ -56,7 +57,10 @@
     <div v-if="type=='password'">
       <div class="field field__input">
         <b>password:</b>
-        <input class="field__input" type="password" v-model="connectionOption.password" />
+        <input class="field__input" :type="passwordVisible ? 'text' : 'password'" v-model="connectionOption.password" />
+        <button class="button" @click="togglePasswordVisibility">
+          {{ passwordVisible ? 'Hide' : 'Show' }}
+        </button>
       </div>
     </div>
     <div v-if="type=='privateKey'">
@@ -107,6 +111,7 @@ export default {
       type: "password",
       error: false,
       errorMessage: "",
+      passwordVisible: false,
     };
   },
   mounted() {
@@ -131,6 +136,9 @@ export default {
           connectionOption: this.connectionOption,
         },
       });
+    },
+    togglePasswordVisibility() {
+      this.passwordVisible = !this.passwordVisible;
     },
   },
 };

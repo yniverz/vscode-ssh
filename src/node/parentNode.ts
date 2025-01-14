@@ -19,6 +19,7 @@ import { error } from 'console';
 import { Console } from '../common/outputChannel';
 import { InfoNode, LinkNode } from './infoNode';
 import prettyBytes = require('pretty-bytes');
+import { exec } from 'child_process';
 import { createReadStream, createWriteStream, fstatSync, statSync } from 'fs';
 
 /**
@@ -181,8 +182,11 @@ export class ParentNode extends AbstractNode {
 
         return new Promise(async (resolve) => {
             try {
-                const ssh = await ClientManager.getSSH(this.sshConfig)
+                console.log("getting children");
+                const ssh = await ClientManager.getSSH(this.sshConfig);
+                console.log("got children");
                 ssh.sftp.readdir(this.file ? this.parentName + this.name : '/', (err, fileList) => {
+                    console.log(err, fileList);
                     if (err) {
                         resolve([new InfoNode(err.message)]);
                     } else if (fileList.length == 0) {
@@ -193,6 +197,7 @@ export class ParentNode extends AbstractNode {
                     }
                 })
             } catch (err) {
+                console.log("error004", err);
                 resolve([new InfoNode(err.message)])
             }
         })
@@ -216,6 +221,32 @@ export class ParentNode extends AbstractNode {
         return [].concat(folderList.sort((a, b) => a.label.localeCompare(b.label)))
             .concat(fileList.sort((a, b) => a.label.localeCompare(b.label)));
     }
+
+
+    public openFileZilla() {
+        // For convenience:
+        const { username, password, host, port } = this.sshConfig;
+    
+        // This only makes sense if there's a password. If user has only a private key,
+        // obviously "username:password@..." won't work, so you may want to handle that.
+        if (!password) {
+          vscode.window.showErrorMessage('No password found for this connection. FileZilla command needs a password!');
+          return;
+        }
+    
+        // Construct the FileZilla sftp URL
+        const sftpUrl = `sftp://${username}:${password}@${host}:${port}`;
+    
+        // The command to run (Mac example):
+        const filezillaPath = '/Applications/FileZilla.app/Contents/MacOS/filezilla';
+    
+        // Execute FileZilla with the sftp URL
+        exec(`"${filezillaPath}" "${sftpUrl}"`, (err) => {
+          if (err) {
+            vscode.window.showErrorMessage(`Failed to open FileZilla: ${err.message}`);
+          }
+        });
+      }
 
 
 

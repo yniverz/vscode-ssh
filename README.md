@@ -1,7 +1,5 @@
 # SSH Client For Visual Studio Code
 
-![preview](preview.jpg)
-
 ## Feature
 
 - Save ssh config.
