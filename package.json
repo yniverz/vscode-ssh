@@ -274,7 +274,7 @@
     "vscode:prepublish": "npm run build",
     "dev": "webpack --progress",
     "build": "webpack -p --progress",
-    "postpack": "cp -r '../vscode-ssh/' '../extension' && zip -r '../vscode-ssh/vscode-ssh.vsix' '../extension' && rm -rf '../extension'"
+    "postpack": "cd .. && cp -r 'vscode-ssh/' 'extension' && zip -r 'vscode-ssh/vscode-ssh.vsix' 'extension/' && rm -rf 'extension' && cd vscode-ssh"
   },
   "devDependencies": {
     "@types/node": "^13.11.0",
