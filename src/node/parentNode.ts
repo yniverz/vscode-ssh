@@ -21,6 +21,7 @@ import { InfoNode, LinkNode } from './infoNode';
 import prettyBytes = require('pretty-bytes');
 import { exec } from 'child_process';
 import { createReadStream, createWriteStream, fstatSync, statSync } from 'fs';
+import { SFTPWrapper } from 'ssh2';
 
 /**
  * contains connection and folder
@@ -82,6 +83,59 @@ export class ParentNode extends AbstractNode {
             } else {
                 vscode.window.showInformationMessage("Create File Cancel!")
             }
+        })
+    }
+
+
+    async syncLocal() {
+        const { sftp } = await ClientManager.getSSH(this.sshConfig);
+        const fullLocalPath = getSshConfigIdentifier(this.sshConfig) + this.fullPath;
+
+        vscode.window.showInformationMessage("Syncing " + this.name + "...")
+
+        // get a tree of files from this folder on the remote server recursively
+        let tree = await this.getRemoteTree(sftp, this.fullPath);
+
+        // download all files from the remote server to the local machine recursively
+        await this.downloadRemoteTree(sftp, tree, fullLocalPath);
+
+        vscode.window.showInformationMessage("Sync " + this.name + " success!")
+    }
+
+    async downloadRemoteTree(sftp: SFTPWrapper, tree: Object, localPath: string) {
+        // ignore folders, they will be created when a file is recorded. use FileManager.recordFile
+        for (let [key, value] of Object.entries(tree)) {
+            if (value.attrs) {
+                const tempPath = await FileManager.recordFile("temp/" + localPath, key, "", FileModel.WRITE);
+                sftp.fastGet(this.fullPath + "/" + key, tempPath, err => {
+                    if (err) {
+                        vscode.window.showErrorMessage(err.message)
+                    }
+                })
+            } else {
+                await this.downloadRemoteTree(sftp, value, localPath + "/" + key)
+            }
+        }
+    }
+
+    async getRemoteTree(sftp, path, tree = {}) {
+        return new Promise((resolve, reject) => {
+            sftp.readdir(path, (err, list) => {
+                if (err) {
+                    reject(err)
+                }
+                list.forEach(async (item) => {
+                    if (item.filename.startsWith(".")) {
+                        return
+                    }
+                    if (item.longname.startsWith("d")) {
+                        tree[item.filename] = await this.getRemoteTree(sftp, path + '/' + item.filename)
+                    } else {
+                        tree[item.filename] = item
+                    }
+                })
+                resolve(tree)
+            })
         })
     }
 

@@ -133,6 +133,10 @@
         "title": "Open In Terminal"
       },
       {
+        "command": "ssh.folder.syncLocal",
+        "title": "Load Contents Locally"
+      },
+      {
         "command": "ssh.file.delete",
         "title": "Delete"
       },
@@ -236,6 +240,11 @@
           "command": "ssh.file.upload",
           "when": "view == github.cweijan.ssh && viewItem == folder",
           "group": "folder@2"
+        },
+        {
+          "command": "ssh.folder.syncLocal",
+          "when": "view == github.cweijan.ssh && viewItem == folder",
+          "group": "folder@3"
         },
         {
           "command": "ssh.file.delete",

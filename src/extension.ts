@@ -30,6 +30,7 @@ export function activate(context: ExtensionContext) {
             'ssh.socks.port': (parentNode: ParentNode) => parentNode.startSocksProxy(),
             'ssh.file.delete': (fileNode: FileNode | ParentNode) => fileNode.delete(),
             'ssh.file.open': (fileNode: FileNode) => fileNode.open(),
+            'ssh.folder.syncLocal': (parentNode: ParentNode) => parentNode.syncLocal(),
             'ssh.file.download': (fileNode: FileNode) => fileNode.download(),
             [Command.REFRESH]: () => serviceManager.provider.refresh(),
         }),

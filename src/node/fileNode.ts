@@ -65,6 +65,7 @@ export class FileNode extends AbstractNode {
             }
         })
     }
+
     async open() {
         if (this.file.attrs.size > 10485760) {
             vscode.window.showErrorMessage("File size except 10 MB, not support open!")
@@ -75,8 +76,13 @@ export class FileNode extends AbstractNode {
             vscode.window.showErrorMessage(`Not support open ${extName} file!`)
             return;
         }
+
+
         const { sftp } = await ClientManager.getSSH(this.sshConfig);
         const fullLocalPath = (getSshConfigIdentifier(this.sshConfig) + this.fullPath).replace("/" + this.file.filename, "");
+
+        vscode.window.showInformationMessage("Opening " + this.file.filename + "...")
+
         const tempPath = await FileManager.recordFile(`temp/${fullLocalPath}`, this.file.filename, null, FileModel.WRITE);
         sftp.fastGet(this.fullPath, tempPath, async (err) => {
             if (err) {

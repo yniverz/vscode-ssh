@@ -3,7 +3,7 @@ import { Client, SFTPWrapper } from "ssh2";
 import { SSHConfig } from "../node/sshConfig";
 import { existsSync, readFileSync } from 'fs';
 
-class SSH {
+export class SSH {
     client: Client;
     sftp: SFTPWrapper;
 }
@@ -46,6 +46,8 @@ export class ClientManager {
                 });
             });
         }
+
+        vscode.window.showInformationMessage("Establishing connection...");
 
         return new Promise((resolve, reject) => {
             this.createNewConnection(sshConfig, withSftp, resolve, reject);
