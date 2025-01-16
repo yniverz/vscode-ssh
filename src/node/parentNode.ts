@@ -12,7 +12,7 @@ import { TerminalService } from '../service/terminal/terminalService';
 import { XtermTerminal } from '../service/terminal/xtermTerminalService';
 import AbstractNode from "./abstracNode";
 import { FileNode } from './fileNode';
-import { SSHConfig } from "./sshConfig";
+import { SSHConfig, getSshConfigIdentifier } from "./sshConfig";
 import { ForwardService } from '../service/forward/forwardService';
 var progressStream = require('progress-stream');
 import { error } from 'console';
@@ -69,7 +69,8 @@ export class ParentNode extends AbstractNode {
         vscode.window.showInputBox().then(async input => {
             if (input) {
                 const { sftp } = await ClientManager.getSSH(this.sshConfig)
-                const tempPath = await FileManager.record("temp/" + input, "", FileModel.WRITE);
+                const fullLocalPath = getSshConfigIdentifier(this.sshConfig) + this.fullPath;
+                const tempPath = await FileManager.recordFile("temp/" + fullLocalPath, input, "", FileModel.WRITE);
                 const targetPath = this.fullPath + "/" + input;
                 sftp.fastPut(tempPath, targetPath, err => {
                     if (err) {

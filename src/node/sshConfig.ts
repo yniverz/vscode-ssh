@@ -22,3 +22,7 @@ export interface SSHConfig {
 export interface Algorithms {
     cipher?: string[];
 }
+
+export function getSshConfigIdentifier(config: SSHConfig): string {
+    return `${config.name}_${config.username}_${config.host}_${config.port}`;
+}

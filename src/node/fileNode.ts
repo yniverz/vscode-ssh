@@ -10,7 +10,7 @@ import { FileManager, FileModel } from '../manager/fileManager';
 import ServiceManager from '../manager/serviceManager';
 import AbstractNode from "./abstracNode";
 import ConnectionProvider from './connectionProvider';
-import { SSHConfig } from "./sshConfig";
+import { SSHConfig, getSshConfigIdentifier } from "./sshConfig";
 var progressStream = require('progress-stream');
 
 const prettyBytes = require('pretty-bytes');
@@ -75,8 +75,9 @@ export class FileNode extends AbstractNode {
             vscode.window.showErrorMessage(`Not support open ${extName} file!`)
             return;
         }
-        const { sftp } = await ClientManager.getSSH(this.sshConfig)
-        const tempPath = await FileManager.record(`temp/${this.file.filename}`, null, FileModel.WRITE);
+        const { sftp } = await ClientManager.getSSH(this.sshConfig);
+        const fullLocalPath = (getSshConfigIdentifier(this.sshConfig) + this.fullPath).replace("/" + this.file.filename, "");
+        const tempPath = await FileManager.recordFile(`temp/${fullLocalPath}`, this.file.filename, null, FileModel.WRITE);
         sftp.fastGet(this.fullPath, tempPath, async (err) => {
             if (err) {
                 vscode.window.showErrorMessage(err.message)
