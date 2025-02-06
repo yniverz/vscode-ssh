@@ -211,35 +211,61 @@ export class ParentNode extends AbstractNode {
     }
 
     delete(): any {
-        // vscode.window.showQuickPick(["YES", "NO"], { canPickMany: false }).then(async str => {
-        //     if (str == "YES") {
-        //         const { sftp } = await ClientManager.getSSH(this.sshConfig)
-        //         sftp.rmdir(this.fullPath, (err) => {
-        //             if (err) {
-        //                 vscode.window.showErrorMessage(err.message)
-        //             } else {
-        //                 vscode.commands.executeCommand(Command.REFRESH)
-        //             }
-        //         })
-        //     }
-        // })
-
         vscode.window.showInformationMessage(
             `Are you sure you want to delete '${this.fullPath}'? This action cannot be undone.`,
             { modal: true },
             "Yes",
             "No").then(async str => {
             if (str == "Yes") {
-                const { sftp } = await ClientManager.getSSH(this.sshConfig)
-                // recursively
-                sftp.rmdir(this.fullPath, { recursive: true, force: true }, (err) => {
+                const { client, sftp } = await ClientManager.getSSH(this.sshConfig)
+
+                client.exec(`rm -rf ${this.fullPath}`, (err, stream) => {
                     if (err) {
                         vscode.window.showErrorMessage(err.message)
                     } else {
-                        vscode.commands.executeCommand(Command.REFRESH)
+                        stream.on('close', (code, signal) => {
+                            vscode.window.showInformationMessage(`Delete ${this.fullPath} success`)
+                            vscode.commands.executeCommand(Command.REFRESH)
+                        }).on('data', data => {
+                            vscode.window.showInformationMessage(data.toString())
+                        }).stderr.on('data', data => {
+                            vscode.window.showErrorMessage(data.toString())
+                        })
                     }
                 })
             }
+        })
+    }
+
+    async deleteRecursive(sftp: SFTPWrapper, path: string) {
+        return new Promise((resolve, reject) => {
+            sftp.readdir(path, (err, list) => {
+                console.log("list", list);
+                console.log("path", path);
+                if (err) {
+                    reject(err)
+                }
+                list.forEach(async (item) => {
+                    if (item.filename.startsWith(".")) {
+                        return
+                    }
+                    if (item.longname.startsWith("d")) {
+                        await this.deleteRecursive(sftp, path + '/' + item.filename)
+                    } else {
+                        sftp.unlink(path + '/' + item.filename, (err) => {
+                            if (err) {
+                                reject(err)
+                            }
+                        })
+                    }
+                })
+                sftp.rmdir(path, (err) => {
+                    if (err) {
+                        reject(err)
+                    }
+                    resolve(null)
+                })
+            })
         })
     }
 
