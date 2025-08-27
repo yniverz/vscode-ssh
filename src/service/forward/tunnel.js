@@ -1,6 +1,6 @@
 var net = require('net');
 var debug = require('debug')('tunnel-ssh');
-var Connection = require('ssh2');
+var { Client } = require('ssh2');
 var createConfig = require('./lib/config');
 var events = require('events');
 var noop = function () {};
@@ -39,7 +39,7 @@ function bindSSHConnection(config, netConnection) {
         return;
     }
 
-    var sshConnection = new Connection();
+    var sshConnection = new Client();
     sshConnection.on('ready', function () {
         debug('sshConnection:ready');
         netConnection.emit('sshConnection', sshConnection, netConnection);
