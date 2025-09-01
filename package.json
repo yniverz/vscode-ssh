@@ -221,7 +221,7 @@
         {
           "command": "ssh.filezilla",
           "when": "view == github.cweijan.ssh && viewItem == connection",
-          "group": "inline@1" 
+          "group": "inline@1"
         },
         {
           "command": "ssh.connection.delete",
@@ -345,7 +345,7 @@
     "vscode:prepublish": "npm run build",
     "dev": "webpack --progress",
     "build": "webpack -p --progress",
-    "postpack": "cd .. && cp -r 'vscode-ssh/' 'extension' && zip -r 'vscode-ssh.vsix' 'extension' && mv 'vscode-ssh.vsix' 'vscode-ssh/vscode-ssh.vsix' && rm -rf 'extension' && cd vscode-ssh"
+    "postpack": "cd .. && sudo cp -r 'vscode-ssh/' 'extension' && sudo zip -r 'vscode-ssh.vsix' 'extension' && mv 'vscode-ssh.vsix' 'vscode-ssh/vscode-ssh.vsix' && sudo rm -rf 'extension' && cd vscode-ssh"
   },
   "devDependencies": {
     "@types/node": "^13.11.0",
@@ -366,8 +366,8 @@
     "xterm": "^4.6.0",
     "xterm-addon-fit": "^0.3.0",
     "xterm-addon-search": "^0.5.0",
-    "xterm-addon-web-links": "^0.2.1",
-    "xterm-addon-search-bar": "^0.2.0"
+    "xterm-addon-search-bar": "^0.2.0",
+    "xterm-addon-web-links": "^0.2.1"
   },
   "dependencies": {
     "@vscode/vsce": "^3.2.1",

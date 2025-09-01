@@ -20,7 +20,19 @@ module.exports = [{
     devtoolModuleFilenameTemplate: '[absoluteResourcePath]',
   },
   externals: {
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    // Exclude native modules and their dependencies from bundling
+    'ssh2': 'commonjs ssh2',
+    'cpu-features': 'commonjs cpu-features',
+    // Exclude other potentially problematic modules
+    'fs': 'commonjs fs',
+    'path': 'commonjs path',
+    'crypto': 'commonjs crypto',
+    'stream': 'commonjs stream',
+    'util': 'commonjs util',
+    'events': 'commonjs events',
+    'buffer': 'commonjs buffer',
+    'os': 'commonjs os'
   },
   resolve: {
     extensions: ['.ts', '.js']
