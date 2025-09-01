@@ -170,8 +170,8 @@
         "title": "Export Connections",
         "category": "SSH",
         "icon": {
-          "light": "resources/image/light/link.svg",
-          "dark": "resources/image/dark/link.svg"
+          "light": "resources/image/icon/zip.svg",
+          "dark": "resources/image/icon/zip.svg"
         }
       },
       {
@@ -179,8 +179,8 @@
         "title": "Import Connections",
         "category": "SSH",
         "icon": {
-          "light": "resources/image/light/link.svg",
-          "dark": "resources/image/dark/link.svg"
+          "light": "resources/image/icon/xml.svg",
+          "dark": "resources/image/icon/xml.svg"
         }
       }
     ],
