@@ -7,10 +7,12 @@ import { ParentNode } from './node/parentNode';
 import { Console } from './common/outputChannel';
 import { Util } from './common/util';
 import AbstractNode from './node/abstracNode';
+import { ConnectionExportService } from './service/connectionExportService';
 
 export function activate(context: ExtensionContext) {
 
     const serviceManager = new ServiceManager(context)
+    const connectionExportService = new ConnectionExportService(context)
 
     context.subscriptions.push(
         ...serviceManager.init(),
@@ -34,6 +36,8 @@ export function activate(context: ExtensionContext) {
             'ssh.file.download': (fileNode: FileNode) => fileNode.download(),
             [Command.REFRESH]: () => serviceManager.provider.refresh(),
             'ssh.recover.connection': () => serviceManager.provider.clearConnectionCache(),
+            'ssh.export.connections': () => connectionExportService.exportConnections(),
+            'ssh.import.connections': () => connectionExportService.importConnections(),
         }),
 
     )

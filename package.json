@@ -164,12 +164,40 @@
           "light": "resources/image/light/link.svg",
           "dark": "resources/image/dark/link.svg"
         }
+      },
+      {
+        "command": "ssh.export.connections",
+        "title": "Export Connections",
+        "category": "SSH",
+        "icon": {
+          "light": "resources/image/light/link.svg",
+          "dark": "resources/image/dark/link.svg"
+        }
+      },
+      {
+        "command": "ssh.import.connections",
+        "title": "Import Connections",
+        "category": "SSH",
+        "icon": {
+          "light": "resources/image/light/link.svg",
+          "dark": "resources/image/dark/link.svg"
+        }
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "ssh.add",
+          "when": "view == github.cweijan.ssh",
+          "group": "navigation@5"
+        },
+        {
+          "command": "ssh.export.connections",
+          "when": "view == github.cweijan.ssh",
+          "group": "navigation@4"
+        },
+        {
+          "command": "ssh.import.connections",
           "when": "view == github.cweijan.ssh",
           "group": "navigation@3"
         },
