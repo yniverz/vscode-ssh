@@ -1,7 +1,6 @@
 import { createWriteStream } from 'fs';
 import * as path from 'path';
 import { extname } from 'path';
-import { FileEntry } from "ssh2-streams";
 import * as vscode from 'vscode';
 import { TreeItemCollapsibleState } from "vscode";
 import { Command, NodeType } from '../common/constant';
@@ -14,6 +13,20 @@ import { SSHConfig, getSshConfigIdentifier } from "./sshConfig";
 var progressStream = require('progress-stream');
 
 const prettyBytes = require('pretty-bytes');
+
+// Define FileEntry type based on ssh2 usage
+interface FileEntry {
+    filename: string;
+    longname: string;
+    attrs?: {
+        size?: number;
+        uid?: number;
+        gid?: number;
+        mode?: number;
+        atime?: number;
+        mtime?: number;
+    };
+}
 
 export class FileNode extends AbstractNode {
     contextValue = NodeType.FILE;

@@ -76,7 +76,7 @@ export class XtermTerminal implements TerminalService {
                         dataBuffer = dataBuffer.concat(data)
                     })
                     stream.on('close', (code, signal) => {
-                        handler.emit('ssherror', 'ssh session is close.')
+                        handler.emit('ssherror', 'ssh session is closed.')
                         end()
                     })
                     if (callback && (typeof callback) == "function")
@@ -91,6 +91,9 @@ export class XtermTerminal implements TerminalService {
                 end();
             })
             client.connect(sshConfig)
+        }).on('tabActivated', () => {
+            // When tab becomes active, tell the terminal to focus
+            handler.emit('tabActivated')
         }).on('openLog', async () => {
             const filePath = sshConfig.username + '@' + sshConfig.host
             await FileManager.record(filePath, dataBuffer.toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ''), FileModel.WRITE)

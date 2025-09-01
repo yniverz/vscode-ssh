@@ -40,6 +40,14 @@ terminal.loadAddon(new WebLinksAddon(() => { }, {
 terminal.open(document.getElementById('terminal-container'))
 fitAddon.fit()
 terminal.focus()
+
+// Add click handler to allow manual focus when user clicks on terminal
+document.getElementById('terminal-container').addEventListener('click', () => {
+  if (!terminal.hasFocus()) {
+    terminal.focus()
+  }
+})
+
 terminal.onData((data) => {
   vscodeEvent.emit('data', data)
 })
@@ -76,11 +84,15 @@ const status = document.getElementById('status')
 vscodeEvent
   .on('connecting', content => {
     terminal.write(content)
-    terminal.focus()
+    // Only focus on initial connection, not on every data update
+    if (!terminal.hasFocus()) {
+      terminal.focus()
+    }
   })
   .on('data', (content) => {
     terminal.write(content)
-    terminal.focus()
+    // Don't auto-focus when receiving data - this steals focus from other terminals
+    // terminal.focus()
   })
   .on('path', path => {
     vscodeEvent.emit('data', `cd ${path}\n`)
@@ -89,6 +101,11 @@ vscodeEvent
     resizeScreen()
     status.innerHTML = data
     status.style.backgroundColor = '#338c33'
+    // Don't auto-focus on status updates - this steals focus from other terminals
+    // terminal.focus()
+  })
+  .on('tabActivated', () => {
+    // Auto-focus when tab becomes active (user switched to this terminal tab)
     terminal.focus()
   })
   .on('ssherror', (data) => {

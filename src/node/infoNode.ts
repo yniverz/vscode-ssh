@@ -12,7 +12,7 @@ export class InfoNode extends AbstractNode {
         this.collapsibleState = TreeItemCollapsibleState.None
     }
     getChildren(): Promise<AbstractNode[]> {
-        return null;
+        return Promise.resolve([]);
     }
 }
 
@@ -27,6 +27,6 @@ export class LinkNode extends AbstractNode {
         this.collapsibleState = TreeItemCollapsibleState.None
     }
     getChildren(): Promise<AbstractNode[]> {
-        return null;
+        return Promise.resolve([]);
     }
 }

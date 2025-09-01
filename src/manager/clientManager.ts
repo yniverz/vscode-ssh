@@ -64,12 +64,30 @@ export class ClientManager {
         reject: (reason?: any) => void) {
             
         console.log("Connection test failed, removing stale connection");
-        cl.end(); // Ensure the stale connection is cleaned up
+        try {
+            cl.end(); // Ensure the stale connection is cleaned up
+        } catch (endError) {
+            console.log("Error ending stale connection:", endError);
+        }
         delete this.activeClient[key];
 
         vscode.window.showInformationMessage("Re-establishing connection...");
         // Proceed to establish a new connection
         this.createNewConnection(sshConfig, withSftp, resolve, reject);
+    }
+
+    // Method to clear all connections (useful for recovery)
+    public static clearAllConnections(): void {
+        console.log("Clearing all SSH connections");
+        for (const key in this.activeClient) {
+            try {
+                const { client } = this.activeClient[key];
+                client.end();
+            } catch (endError) {
+                console.log("Error ending connection:", key, endError);
+            }
+        }
+        this.activeClient = {};
     }
 
     private static createNewConnection(

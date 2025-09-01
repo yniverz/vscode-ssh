@@ -85,6 +85,15 @@
         }
       },
       {
+        "command": "ssh.recover.connection",
+        "title": "Recover Connection",
+        "category": "SSH",
+        "icon": {
+          "light": "resources/image/light/refresh.svg",
+          "dark": "resources/image/dark/refresh.svg"
+        }
+      },
+      {
         "command": "ssh.connection.delete",
         "title": "Delete connection",
         "icon": {
@@ -168,6 +177,11 @@
           "command": "ssh.refresh",
           "when": "view == github.cweijan.ssh",
           "group": "navigation@2"
+        },
+        {
+          "command": "ssh.recover.connection",
+          "when": "view == github.cweijan.ssh",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -205,6 +219,11 @@
           "command": "ssh.socks.port",
           "when": "view == github.cweijan.ssh && viewItem == connection",
           "group": "1_connection@1"
+        },
+        {
+          "command": "ssh.recover.connection",
+          "when": "view == github.cweijan.ssh && viewItem == connection",
+          "group": "1_connection@2"
         },
         {
           "command": "ssh.file.new",
@@ -247,6 +266,11 @@
           "group": "folder@3"
         },
         {
+          "command": "ssh.recover.connection",
+          "when": "view == github.cweijan.ssh && viewItem == folder",
+          "group": "folder@4"
+        },
+        {
           "command": "ssh.file.delete",
           "when": "view == github.cweijan.ssh && viewItem == folder",
           "group": "folder@4"
@@ -257,9 +281,19 @@
           "group": "file@1"
         },
         {
+          "command": "ssh.recover.connection",
+          "when": "view == github.cweijan.ssh && viewItem == file",
+          "group": "file@3"
+        },
+        {
           "command": "ssh.file.delete",
           "when": "view == github.cweijan.ssh && viewItem == file",
           "group": "file@2"
+        },
+        {
+          "command": "ssh.recover.connection",
+          "when": "view == github.cweijan.ssh && viewItem == info",
+          "group": "info@1"
         }
       ]
     },

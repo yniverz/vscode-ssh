@@ -1,5 +1,4 @@
 import * as path from 'path';
-import { FileEntry } from "ssh2-streams";
 import * as vscode from 'vscode';
 import { TreeItemCollapsibleState } from "vscode";
 import { Command, NodeType } from "../common/constant";
@@ -22,6 +21,20 @@ import prettyBytes = require('pretty-bytes');
 import { exec } from 'child_process';
 import { createReadStream, createWriteStream, fstatSync, statSync } from 'fs';
 import { SFTPWrapper } from 'ssh2';
+
+// Define FileEntry type based on ssh2 usage
+interface FileEntry {
+    filename: string;
+    longname: string;
+    attrs?: {
+        size?: number;
+        uid?: number;
+        gid?: number;
+        mode?: number;
+        atime?: number;
+        mtime?: number;
+    };
+}
 
 /**
  * contains connection and folder
@@ -284,20 +297,38 @@ export class ParentNode extends AbstractNode {
                 console.log("getting children");
                 const ssh = await ClientManager.getSSH(this.sshConfig);
                 console.log("got children");
-                ssh.sftp.readdir(this.file ? this.parentName + this.name : '/', (err, fileList) => {
+                
+                // Add null check for ssh object
+                if (!ssh || !ssh.sftp) {
+                    console.log("SSH connection or SFTP is null");
+                    resolve([new InfoNode("SSH connection failed or SFTP not available. Try using 'Recover Connection' command.")]);
+                    return;
+                }
+                
+                const pathToRead = this.file ? this.parentName + this.name : '/';
+                console.log("Reading directory:", pathToRead);
+                
+                ssh.sftp.readdir(pathToRead, (err, fileList) => {
                     console.log(err, fileList);
                     if (err) {
-                        resolve([new InfoNode(err.message)]);
-                    } else if (fileList.length == 0) {
+                        console.log("SFTP readdir error:", err);
+                        resolve([new InfoNode(`Error reading directory: ${err.message}. Try using 'Recover Connection' command.`)]);
+                    } else if (!fileList || fileList.length === 0) {
                         resolve([new InfoNode("There are no files in this folder.")]);
                     } else {
                         const parent = this.file ? `${this.parentName + this.name}/` : '/';
-                        resolve(this.build(fileList, parent))
+                        try {
+                            const result = this.build(fileList, parent);
+                            resolve(result);
+                        } catch (buildError) {
+                            console.log("Error building file list:", buildError);
+                            resolve([new InfoNode(`Error building file list: ${buildError.message}. Try using 'Recover Connection' command.`)]);
+                        }
                     }
                 })
             } catch (err) {
                 console.log("error004", err);
-                resolve([new InfoNode(err.message)])
+                resolve([new InfoNode(`Connection error: ${err.message}. Try using 'Recover Connection' command.`)])
             }
         })
     }
@@ -307,18 +338,44 @@ export class ParentNode extends AbstractNode {
         const folderList: AbstractNode[] = []
         const fileList: AbstractNode[] = []
 
+        // Add null check for entryList
+        if (!entryList || !Array.isArray(entryList)) {
+            console.log("Invalid entryList:", entryList);
+            return [new InfoNode("Invalid file list received from server")];
+        }
+
         for (const entry of entryList) {
-            if (entry.longname.startsWith("d")) {
-                folderList.push(new ParentNode(this.sshConfig, entry.filename, entry, parentName))
-            } else if (entry.longname.startsWith("l")) {
-                fileList.push(new LinkNode(entry.filename))
-            } else {
-                fileList.push(new FileNode(this.sshConfig, entry, parentName))
+            try {
+                // Add null check for individual entries
+                if (!entry || !entry.filename || !entry.longname) {
+                    console.log("Invalid entry:", entry);
+                    continue; // Skip invalid entries instead of crashing
+                }
+                
+                if (entry.longname.startsWith("d")) {
+                    folderList.push(new ParentNode(this.sshConfig, entry.filename, entry, parentName))
+                } else if (entry.longname.startsWith("l")) {
+                    fileList.push(new LinkNode(entry.filename))
+                } else {
+                    fileList.push(new FileNode(this.sshConfig, entry, parentName))
+                }
+            } catch (entryError) {
+                console.log("Error processing entry:", entry, entryError);
+                // Continue processing other entries instead of failing completely
+                continue;
             }
         }
 
-        return [].concat(folderList.sort((a, b) => a.label.localeCompare(b.label)))
-            .concat(fileList.sort((a, b) => a.label.localeCompare(b.label)));
+        // Sort and combine lists with error handling
+        try {
+            const sortedFolders = folderList.sort((a, b) => a.label.localeCompare(b.label));
+            const sortedFiles = fileList.sort((a, b) => a.label.localeCompare(b.label));
+            return [].concat(sortedFolders).concat(sortedFiles);
+        } catch (sortError) {
+            console.log("Error sorting file lists:", sortError);
+            // Return unsorted lists if sorting fails
+            return [].concat(folderList).concat(fileList);
+        }
     }
 
 

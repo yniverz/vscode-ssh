@@ -4,37 +4,38 @@
     <blockquote class="panel" id="error" v-if="error">
       <p class="panel__text">
         Connection error! <span id="errorMessage" v-text="errorMessage"></span><br />
+        <small>Note: You can still add the connection even if it's not reachable. The system will ask if you want to add it anyway.</small>
       </p>
     </blockquote>
-    <div>
-      <div class="field field__input">
+    <div class="field-wrapper">
+      <div class="field field__input field--inline">
         <strong>name:</strong>
         <input class="field__input" placeholder="connection name, can be empty" v-model="connectionOption.name" />
       </div>
     </div>
-    <div>
-      <div class="field field__input">
+    <div class="field-wrapper">
+      <div class="field field__input field--inline">
         <b>host:</b>
         <input class="field__input" v-model="connectionOption.host" />
       </div>
     </div>
-    <div>
-      <div class="field field__input">
+    <div class="field-wrapper">
+      <div class="field field__input field--inline">
         <b>port:</b>
         <input class="field__input" v-model="connectionOption.port" />
       </div>
     </div>
-    <div>
-      <div class="field field__input">
+    <div class="field-wrapper">
+      <div class="field field__input field--inline">
         <b>username:</b>
         <input class="field__input" v-model="connectionOption.username" />
       </div>
     </div>
-    <div>
+    <div class="field-wrapper">
       <!-- hide the cipher element -->
-      <div class="field field__input" style="display:none">
+      <div class="field field__input field--inline" style="display:none">
         <b>cipher:</b>
-        <select v-model="connectionOption.algorithms.cipher[0]">
+        <select class="field__input" v-model="connectionOption.algorithms.cipher[0]">
           <option value="aes128-cbc">aes128-cbc</option>
           <option value="aes192-cbc">aes192-cbc</option>
           <option value="aes256-cbc">aes256-cbc</option>
@@ -45,17 +46,17 @@
         </select>
       </div>
     </div>
-    <div>
-      <div class="field field__input">
+    <div class="field-wrapper">
+      <div class="field field__input field--inline">
         <b>type:</b>
-        <select v-model="type">
+        <select class="field__input" v-model="type">
           <option value="password">password</option>
           <option value="privateKey">privateKey</option>
         </select>
       </div>
     </div>
-    <div v-if="type=='password'">
-      <div class="field field__input">
+    <div class="field-wrapper" v-if="type=='password'">
+      <div class="field field__input field--password">
         <b>password:</b>
         <input class="field__input" :type="passwordVisible ? 'text' : 'password'" v-model="connectionOption.password" />
         <button class="button" @click="togglePasswordVisibility">
@@ -63,15 +64,15 @@
         </button>
       </div>
     </div>
-    <div v-if="type=='privateKey'">
-      <div>
-        <div class="field field__input">
+    <div class="field-wrapper" v-if="type=='privateKey'">
+      <div class="field-wrapper">
+        <div class="field field__input field--inline">
           <b>privateKey:</b>
           <input class="field__input" type="privateKey" v-model="connectionOption.private" />
         </div>
       </div>
-      <div>
-        <div class="field field__input">
+      <div class="field-wrapper">
+        <div class="field field__input field--inline">
           <b>passphrase:</b>
           <input class="field__input" type="passphrase" v-model="connectionOption.passphrase" />
         </div>
@@ -79,7 +80,9 @@
     </div>
     <div id="fields" data-type="none"></div>
 
-    <button class="button button--primary" @click="tryConnect">Connect</button>
+    <button class="button button--primary" @click="tryConnect" :disabled="isConnecting">
+      {{ isConnecting ? 'Testing Connection...' : 'Test & Add Connection' }}
+    </button>
 
   </div>
 </template>
@@ -112,6 +115,7 @@ export default {
       error: false,
       errorMessage: "",
       passwordVisible: false,
+      isConnecting: false,
     };
   },
   mounted() {
@@ -120,9 +124,17 @@ export default {
       if (data.type === "CONNECTION_ERROR") {
         this.error = true;
         this.errorMessage = data.content;
+        this.isConnecting = false;
       } else if (data.type === "edit") {
         this.connectionOption = data.content;
+      } else if (data.type === "CONNECTION_SUCCESS") {
+        // Connection was added successfully (either after successful test or user chose to add anyway)
+        this.error = false;
+        this.errorMessage = "";
+        this.isConnecting = false;
+        // The panel will be disposed by the backend, so we don't need to handle it here
       } else {
+        this.isConnecting = false;
         document.write("Connect success!");
       }
     });
@@ -130,6 +142,10 @@ export default {
   },
   methods: {
     tryConnect() {
+      this.isConnecting = true;
+      this.error = false;
+      this.errorMessage = "";
+      
       postMessage({
         type: "CONNECT_TO_SQL_SERVER",
         content: {
@@ -149,7 +165,7 @@ export default {
   margin: auto;
   padding-left: 24px;
   padding-right: 24px;
-  max-width: 1000px;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -178,8 +194,13 @@ export default {
   border-bottom-color: var(--vscode-panelTitle-activeForeground);
 }
 
+.field-wrapper {
+  width: 100%;
+}
+
 .field {
   padding: 1em 0;
+  width: 100%;
 }
 
 .field--checkbox {
@@ -205,11 +226,43 @@ export default {
   color: var(--vscode-input-foreground);
   padding: 4px;
   margin: 2px 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .field__input:focus {
   border-color: var(--vscode-focusBorder);
   outline: 0;
+}
+
+select.field__input {
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  color: var(--vscode-input-foreground);
+  padding: 4px;
+  margin: 2px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field--inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.field--inline .field__input {
+  flex: 1;
+}
+
+.field--password {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.field--password .field__input {
+  flex: 1;
 }
 
 .button {
@@ -229,6 +282,11 @@ export default {
   background-color: var(--vscode-button-hoverBackground);
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .panel {
   margin: 0 7px 0 5px;
   padding: 0 16px 0 10px;
@@ -240,5 +298,10 @@ export default {
 
 .panel__text {
   line-height: 2;
+}
+
+.panel__text small {
+  opacity: 0.8;
+  font-style: italic;
 }
 </style>

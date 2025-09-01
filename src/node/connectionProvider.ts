@@ -36,21 +36,32 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
             if (!element) {
                 const config = this.getConnections();
                 const nodes = Object.keys(config).map(key => {
-                    const sshConfig = config[key];
-                    if (sshConfig.private && existsSync(sshConfig.private)) {
-                        sshConfig.privateKey = require('fs').readFileSync(sshConfig.private)
+                    try {
+                        const sshConfig = config[key];
+                        if (sshConfig.private && existsSync(sshConfig.private)) {
+                            sshConfig.privateKey = require('fs').readFileSync(sshConfig.private)
+                        }
+                        const nodeKey = `${sshConfig.name ? sshConfig.name + "_" : ""}${key}`;
+                        return new ParentNode(sshConfig, nodeKey);
+                    } catch (nodeError) {
+                        console.log("Error creating node for key:", key, nodeError);
+                        return new InfoNode(`Error creating connection node: ${nodeError.message}. Try using 'Recover Connection' command.`);
                     }
-                    key=`${sshConfig.name ? sshConfig.name + "_" : ""}${key}`
-                    return new ParentNode(sshConfig, key);
-                });
+                }).filter(node => node !== null); // Filter out any null nodes
+                
                 nodes.sort((a, b) => a.label.localeCompare(b.label));
-                return nodes
+                return nodes;
             } else {
-                return element.getChildren()
+                try {
+                    return await element.getChildren();
+                } catch (childrenError) {
+                    console.log("Error getting children for element:", element.label, childrenError);
+                    return [new InfoNode(`Error loading folder contents: ${childrenError.message}. Try using 'Recover Connection' command.`)];
+                }
             }
         } catch (error) {
             console.log("error002", error);
-            return [new InfoNode(error)]
+            return [new InfoNode(`Connection error: ${error.message}. Try using 'Recover Connection' command.`)];
         }
     }
 
@@ -70,6 +81,32 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
         this._onDidChangeTreeData.fire();
     }
 
+    // Force refresh of a specific element to help recover from errors
+    refreshElement(element?: AbstractNode) {
+        if (element) {
+            this._onDidChangeTreeData.fire(element);
+        } else {
+            this._onDidChangeTreeData.fire();
+        }
+    }
+
+    // Clear connection cache to force reconnection
+    async clearConnectionCache() {
+        try {
+            // Clear all SSH connections to force reconnection
+            const { ClientManager } = await import('../manager/clientManager');
+            ClientManager.clearAllConnections();
+            
+            // Refresh the tree view to trigger reconnection
+            this.refresh();
+            
+            vscode.window.showInformationMessage("Connection cache cleared. Reconnecting...");
+        } catch (error) {
+            console.log("Error clearing connection cache:", error);
+            vscode.window.showErrorMessage(`Failed to clear connection cache: ${error.message}`);
+        }
+    }
+
     async save(parentNode?: ParentNode) {
 
         ViewManager.createWebviewPanel({
@@ -83,7 +120,7 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
                         }
                         handler.emit("edit",parentNode.sshConfig)
                     }
-                }).on("CONNECT_TO_SQL_SERVER", (content) => {
+                }).on("CONNECT_TO_SQL_SERVER", async (content) => {
                     const sshConfig: SSHConfig = content.connectionOption
                     let msg = null;
                     if (!sshConfig.username) {
@@ -103,17 +140,40 @@ export default class ConnectionProvider implements TreeDataProvider<AbstractNode
                         return;
                     }
 
-                    ClientManager.getSSH(sshConfig,false).then(() => {
+                    try {
+                        // First try to test the connection
+                        await ClientManager.getSSH(sshConfig, false);
+                        // If successful, save the connection
                         const id = `${sshConfig.username}@${sshConfig.host}:${sshConfig.port}`;
                         const configs = this.getConnections();
                         configs[id] = sshConfig;
                         this.context.globalState.update(CacheKey.CONECTIONS_CONFIG, configs);
+                        handler.emit('CONNECTION_SUCCESS', 'Connection added successfully!');
                         handler.panel.dispose()
                         this.refresh();
-                    }).catch(err => {
+                    } catch (err) {
                         console.log("error003", err);
-                        handler.emit('CONNECTION_ERROR', err.message)
-                    })
+                        // Connection failed, ask user if they want to add it anyway
+                        const choice = await vscode.window.showWarningMessage(
+                            `Connection failed: ${err.message}\n\nWould you like to add this connection anyway? You can check your connection information later.`,
+                            'Add Anyway', 'Cancel'
+                        );
+                        
+                        if (choice === 'Add Anyway') {
+                            // Save the connection even though it failed
+                            const id = `${sshConfig.username}@${sshConfig.host}:${sshConfig.port}`;
+                            const configs = this.getConnections();
+                            configs[id] = sshConfig;
+                            this.context.globalState.update(CacheKey.CONECTIONS_CONFIG, configs);
+                            handler.emit('CONNECTION_SUCCESS', 'Connection added successfully! You can try connecting again later.');
+                            handler.panel.dispose()
+                            this.refresh();
+                            vscode.window.showInformationMessage('Connection added successfully. You can try connecting again later.');
+                        } else {
+                            // User chose to cancel, show the error
+                            handler.emit('CONNECTION_ERROR', err.message)
+                        }
+                    }
 
                 })
             }

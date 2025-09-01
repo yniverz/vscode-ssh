@@ -119,6 +119,14 @@ export class ViewManager {
                     this.viewStatu[viewOption.title].eventEmitter.emit("dispose")
                     this.viewStatu[viewOption.title] = null
                 })
+                
+                // Add listener for when tab becomes active
+                webviewPanel.onDidChangeViewState((e) => {
+                    if (e.webviewPanel.active) {
+                        newStatus.eventEmitter.emit("tabActivated")
+                    }
+                })
+                
                 if (viewOption.eventHandler) {
                     viewOption.eventHandler(new Hanlder(webviewPanel, newStatus.eventEmitter))
                 }

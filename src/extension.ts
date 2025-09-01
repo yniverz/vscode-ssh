@@ -33,6 +33,7 @@ export function activate(context: ExtensionContext) {
             'ssh.folder.syncLocal': (parentNode: ParentNode) => parentNode.syncLocal(),
             'ssh.file.download': (fileNode: FileNode) => fileNode.download(),
             [Command.REFRESH]: () => serviceManager.provider.refresh(),
+            'ssh.recover.connection': () => serviceManager.provider.clearConnectionCache(),
         }),
 
     )
